@@ -1,0 +1,70 @@
+;
+; Installation file for a Generic Upper Filter. For KMDF Filters
+; it is assumed that the Framework is already installed and present
+;
+; Copyright (c) OSR Open Systems Resources, Inc.
+;
+; NOTE: We specifically do not want to specify PnpLockdown=1 
+;       to make it easier to replace our driver (by copying over the executable)
+;       during testing/experimentation.
+;
+[Version]
+Signature   = "$Windows NT$"
+Class       = %ClassNameToFilter%   ; Be sure the class NAME and ... 
+ClassGUID   = %ClassGUIDToFilter%   ; ... the class GUID agree.
+Provider    = %Provider%
+DriverVer   = 
+CatalogFile = USBlogger.cat
+
+;
+; General installation section
+;
+
+[DefaultInstall.NT]
+CopyFiles = @USBlogger.sys
+Addreg    = USBlogger.AddReg
+
+[DestinationDirs]
+DefaultDestDir = 12
+
+[USBlogger.AddReg]
+HKLM, System\CurrentControlSet\Control\Class\%ClassGUIDToFilter%, LowerFilters, 0x00010008, %DriverName%     
+
+;
+; Service installation section
+;
+
+[DefaultInstall.NT.Services]
+AddService = USBlogger, , USBlogger.Service.Install
+
+[USBlogger.Service.Install]
+DisplayName      = %ServiceName%
+Description      = %ServiceDescription%
+ServiceBinary    = %12%\%DriverName%.sys        ;%windir%\system32\drivers\
+ServiceType      = 1                            ;SERVICE_KERNEL_DRIVER
+StartType        = 0                            ;SERVICE_BOOT_START 
+ErrorControl     = 1                            ;SERVICE_ERROR_NORMAL
+AddReg           = KMDFVerifierAddReg
+
+
+[KMDFVerifierAddReg]
+HKR, Parameters\Wdf,VerifierOn,0x00010001,1
+HKR, Parameters\Wdf,VerboseOn,0x00010001,1
+HKR, Parameters\Wdf,DbgBreakOnError,0x00010001,1
+
+
+[SourceDisksFiles]
+USBlogger.sys=1
+
+[SourceDisksNames]
+1 = %DiskId1%
+
+[Strings]
+ClassGUIDToFilter       = "{4d36e96c-e325-11ce-bfc1-08002be10318}"
+ClassNameToFilter       = "Media"
+Provider                = "OSR Open Systems Resources, Inc."
+ServiceDescription      = "Upper Filter"
+GenFilter.DeviceDesc    = "USB logger Device"
+ServiceName             = "USBlogger"
+DriverName              = "USBlogger"
+DiskId1                 = "Upper Filter Installation Disk"
